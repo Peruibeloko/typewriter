@@ -5,6 +5,11 @@ module.exports.getAllPosts = (req, res) => {
 };
 
 module.exports.getPost = (req, res) => {
+  if (req.params.id === 0) {
+    Post.findOne()
+      .sort('-id')
+      .exec((err, post) => res.send(err || post));
+  }
   Post.findOne(
     {
       id: req.params.id
@@ -14,8 +19,13 @@ module.exports.getPost = (req, res) => {
 };
 
 module.exports.createPost = (req, res) => {
-  const newPost = new Post(req.body);
-  newPost.save((err, post) => res.send(err || post));
+  Post.findOne()
+    .sort('-id')
+    .exec((err, post) => {
+      if (err) res.send(err);
+      const newPost = new Post({ id: post.id, ...req.body });
+      newPost.save((err, post) => res.send(err || post));
+    });
 };
 
 module.exports.updatePost = (req, res) => {
