@@ -9,13 +9,13 @@ module.exports.getPost = (req, res) => {
     {
       id: req.params.id
     },
-    res.send(err || post)
+    (err, post) => res.send(err || post)
   );
 };
 
 module.exports.createPost = (req, res) => {
   const newPost = new Post(req.body);
-  newPost.save(res.send(err || post));
+  newPost.save((err, post) => res.send(err || post));
 };
 
 module.exports.updatePost = (req, res) => {
@@ -23,7 +23,7 @@ module.exports.updatePost = (req, res) => {
     {
       id: req.params.id
     },
-    res.send(err || post)
+    (err, post) => res.send(err || post)
   );
 };
 
