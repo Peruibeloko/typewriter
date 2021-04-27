@@ -37,5 +37,5 @@ module.exports.deletePost = (req, res) => {
 };
 
 module.exports.getFieldFromAllPosts = (req, res) => {
-  Post.find({}, (err, post) => res.send(err || posts.map(p => p[req.params.field])));
+  Post.find({}, (err, posts) => res.send(err || posts.map(p => p[req.params.field])));
 };
