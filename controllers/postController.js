@@ -5,17 +5,18 @@ module.exports.getAllPosts = (req, res) => {
 };
 
 module.exports.getPost = (req, res) => {
-  if (req.params.id === 0) {
+  if (req.params.id === '0') {
     Post.findOne()
       .sort('-id')
       .exec((err, post) => res.send(err || post));
+  } else {
+    Post.findOne(
+      {
+        id: req.params.id
+      },
+      (err, post) => res.send(err || post)
+    );
   }
-  Post.findOne(
-    {
-      id: req.params.id
-    },
-    (err, post) => res.send(err || post)
-  );
 };
 
 module.exports.createPost = (req, res) => {
