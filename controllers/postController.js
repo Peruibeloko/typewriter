@@ -52,5 +52,7 @@ module.exports.getFieldFromAllPosts = (req, res) => {
 };
 
 module.exports.countPosts = (req, res) => {
-  Post.countDocuments({}, (err, count) => res.send(err || count));
+  Post.countDocuments((err, count) => {
+    res.json(err || count);
+  });
 };
