@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const Post = new Schema({
+  id: {
+    type: Number,
+    required: 'Post number'
+  },
   title: {
     type: String,
     required: 'Post title'
