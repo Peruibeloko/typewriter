@@ -22,7 +22,10 @@ app.use(cors());
 app.use(routes);
 
 app.use('*', (req, res, next) => {
-  console.log(`Received ${req.method} ${req.path} with parameters ${req.params}`);
+  console.log(
+    `Received ${req.method} ${req.path}${req.params ? ' with parameters ' : ''}`,
+    req.params
+  );
   next();
 });
 
