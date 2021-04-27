@@ -47,11 +47,10 @@ module.exports.countPosts = (req, res) => {
 
 function convertMarkdownAndSend(err, post, res) {
   const converter = new Converter();
-
   if (err) {
     res.send(err);
   } else {
-    const finalPost = { ...post };
+    const finalPost = post;
     finalPost.post = converter.parseMarkdown(post.post);
     res.send(finalPost);
   }

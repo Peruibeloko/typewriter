@@ -8,12 +8,12 @@ class Converter {
   }
 
   parseMarkdown(post) {
-    return this.marked(post);
+    const newPost = post.replace(/\n/g, '\\\n');
+    return this.marked(newPost);
   }
 
-  paragraph(text) {
-    console.log(text);
-    return text;
+  paragraph(src) {
+    return src;
   }
 }
 
