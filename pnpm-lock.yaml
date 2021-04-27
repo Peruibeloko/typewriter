@@ -5,6 +5,7 @@ specifiers:
   cors: ^2.8.5
   dotenv: ^8.2.0
   express: ^4.17.1
+  marked: ^2.0.3
   mongoose: ^5.12.5
   nodemon: ^2.0.7
 
@@ -13,6 +14,7 @@ dependencies:
   cors: 2.8.5
   dotenv: 8.2.0
   express: 4.17.1
+  marked: 2.0.3
   mongoose: 5.12.5
 
 devDependencies:
@@ -709,6 +711,12 @@ packages:
     dependencies:
       semver: 6.3.0
     dev: true
+
+  /marked/2.0.3:
+    resolution: {integrity: sha512-5otztIIcJfPc2qGTN8cVtOJEjNJZ0jwa46INMagrYfk0EvqtRuEHLsEe0LrFS0/q+ZRKT0+kXK7P2T1AN5lWRA==}
+    engines: {node: '>= 8.16.2'}
+    hasBin: true
+    dev: false
 
   /media-typer/0.3.0:
     resolution: {integrity: sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=}
