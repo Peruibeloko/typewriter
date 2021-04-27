@@ -50,3 +50,7 @@ module.exports.deletePost = (req, res) => {
 module.exports.getFieldFromAllPosts = (req, res) => {
   Post.find({}, (err, posts) => res.send(err || posts.map(p => p[req.params.field])));
 };
+
+module.exports.countPosts = (req, res) => {
+  Post.countDocuments({}, (err, count) => res.send(err || count));
+};
