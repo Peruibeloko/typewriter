@@ -21,6 +21,11 @@ app.use(cors());
 
 app.use(routes);
 
+app.use('*', (req, res, next) => {
+  console.log(`Received ${req.method} ${req.path} with parameters ${req.params}`);
+  next();
+});
+
 app.use('/healthcheck', (req, res) => res.send('OK'));
 
 app.use((req, res, next) => {
