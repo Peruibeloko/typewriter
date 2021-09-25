@@ -2,12 +2,15 @@ const router = require('express').Router();
 
 const post = require('../controllers/postController');
 
-router.route('/').get(post.getAllPosts).post(post.createPost);
+router.get('/', post.getAllPosts);
+router.post('/', post.createPost);
 
-router.route('/field/:field').get(post.getFieldFromAllPosts);
+router.get('/field/:field', post.getFieldFromAllPosts);
 
-router.route('/count').get(post.countPosts);
+router.get('/count', post.countPosts);
 
-router.route('/:id').get(post.getPost).patch(post.updatePost).delete(post.deletePost);
+router.get('/:id', post.getPost);
+router.patch('/:id', post.updatePost);
+router.delete('/:id', post.deletePost);
 
 module.exports = router;

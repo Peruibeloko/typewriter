@@ -4,13 +4,17 @@ const posts = require('./posts');
 
 const app = express();
 
-router.use(function (req, res, next) {
-  console.log(
-    `[${new Date().toLocaleString('pt-BR')}] Received ${req.method} ${req.path}${req.params ? ' with parameters' : ''}`,
-    req.params
-  );
-  next();
-});
+if (process.env.VERBOSE === 'true') {
+  router.use((req, res, next) => {
+    console.log(
+      `[${new Date().toLocaleString('pt-BR')}] Received ${req.method} ${req.path}${
+        req.params ? ' with parameters' : ''
+      }`,
+      req.params
+    );
+    next();
+  });
+}
 
 app.use(router);
 app.use('/post', posts);
