@@ -14,13 +14,13 @@ mongoose.connect(process.env.MONGODB_URL, {
 
 app.use(urlencoded({ extended: true }));
 app.use(json());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.BLOG_URL,
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+  })
+);
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.BLOG_URL);
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
 app.use('/healthcheck', (req, res) => res.send('OK'));
 app.use(routes);
 
