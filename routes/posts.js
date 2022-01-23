@@ -1,16 +1,17 @@
 const router = require('express').Router();
 
-const post = require('../controllers/postController');
+import * as postController from '../controllers/postController';
+import { checkAuth } from '../controllers/authController';
 
-router.get('/', post.getAllPosts);
-router.post('/', post.createPost);
+router.get('/', postController.getAllPosts);
+router.post('/', [checkAuth, postController.createPost]);
 
-router.get('/field/:field', post.getFieldFromAllPosts);
+router.get('/field/:field', postController.getFieldFromAllPosts);
 
-router.get('/count', post.countPosts);
+router.get('/count', postController.countPosts);
 
-router.get('/:id', post.getPost);
-router.patch('/:id', post.updatePost);
-router.delete('/:id', post.deletePost);
+router.get('/:id', postController.getPost);
+router.patch('/:id', [checkAuth, postController.updatePost]);
+router.delete('/:id', [checkAuth, postController.deletePost]);
 
-module.exports = router;
+export default router;

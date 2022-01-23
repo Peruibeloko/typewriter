@@ -1,6 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const posts = require('./posts');
+import express, { Router } from 'express';
+const router = Router();
+
+import posts from './posts';
+import auth from './auth';
 
 const app = express();
 
@@ -18,5 +20,6 @@ if (process.env.VERBOSE === 'true') {
 
 app.use(router);
 app.use('/post', posts);
+app.use('/auth', auth);
 
-module.exports = app;
+export default app;

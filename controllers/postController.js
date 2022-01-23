@@ -1,11 +1,11 @@
-const Post = require('../models/postModel');
-const Converter = require('../classes/converter');
+import Post from '../models/postModel';
+import Converter from '../classes/converter';
 
-module.exports.getAllPosts = (req, res) => {
+export const getAllPosts = (req, res) => {
   Post.find({}, (err, posts) => res.send(err || posts));
 };
 
-module.exports.getPost = (req, res) => {
+export const getPost = (req, res) => {
   if (req.params.id === '0') {
     Post.findOne()
       .sort('-id')
@@ -15,7 +15,7 @@ module.exports.getPost = (req, res) => {
   }
 };
 
-module.exports.createPost = (req, res) => {
+export const createPost = (req, res) => {
   Post.findOne()
     .sort('-id')
     .exec((err, post) => {
@@ -25,27 +25,27 @@ module.exports.createPost = (req, res) => {
     });
 };
 
-module.exports.updatePost = (req, res) => {
+export const updatePost = (req, res) => {
   Post.updateOne({ id: req.params.id }, (err, post) => res.send(err || post));
 };
 
-module.exports.deletePost = (req, res) => {
+export const deletePost = (req, res) => {
   Post.deleteOne({ id: req.params.id }, err =>
     res.send(err || { message: `Post ${req.params.id} successfully deleted` })
   );
 };
 
-module.exports.getFieldFromAllPosts = (req, res) => {
+export const getFieldFromAllPosts = (req, res) => {
   Post.find({}, (err, posts) => res.send(err || posts.map(p => p[req.params.field])));
 };
 
-module.exports.countPosts = (req, res) => {
+export const countPosts = (req, res) => {
   Post.countDocuments((err, count) => {
     res.json(err || count);
   });
 };
 
-function convertMarkdownAndSend(err, post, res) {
+const convertMarkdownAndSend = (err, post, res) => {
   const converter = new Converter();
   if (err) {
     res.send(err);
@@ -54,4 +54,4 @@ function convertMarkdownAndSend(err, post, res) {
     finalPost.post = converter.parseMarkdown(post.post);
     res.send(finalPost);
   }
-}
+};
