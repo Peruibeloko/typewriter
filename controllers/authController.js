@@ -39,7 +39,10 @@ export const login = async (req, res) => {
 };
 
 export const checkAuth = async (req, res, next) => {
-  const authHeader = req.headers.authorization.replace('Bearer ', '');
+  const authHeader = req.headers.authorization?.replace('Bearer ', '');
+
+  if (!authHeader) return res.status(403).send('Missing authentication header');
+
   const decodedJWT = JSON.parse(jsonwebtoken.decode(authHeader));
 
   const user = await User.findById(decodedJWT.email, 'secret timestamp').exec();
