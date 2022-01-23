@@ -1,13 +1,13 @@
 import cors from 'cors';
 import { config as dotenvConfig } from 'dotenv';
 import express, { json, urlencoded } from 'express';
-import { connect } from 'mongoose';
-import routes from './routes/index';
+import mongoose from 'mongoose';
+import routes from './routes/index.js';
 dotenvConfig();
 
 const app = express();
 
-connect(process.env.MONGODB_URL, {
+mongoose.connect(process.env.MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });

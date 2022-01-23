@@ -1,6 +1,6 @@
-import mongoose, { model } from 'mongoose';
+import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
+const { model, Schema } = mongoose;
 
 const allowlistSchema = new Schema({
   _id: {

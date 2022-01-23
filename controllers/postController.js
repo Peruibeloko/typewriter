@@ -1,5 +1,5 @@
-import Post from '../models/postModel';
-import Converter from '../classes/converter';
+import Converter from '../classes/converter.js';
+import Post from '../models/postModel.js';
 
 export const getAllPosts = (req, res) => {
   Post.find({}, (err, posts) => res.send(err || posts));

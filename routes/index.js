@@ -1,9 +1,8 @@
 import express, { Router } from 'express';
+import auth from './auth.js';
+import posts from './posts.js';
+
 const router = Router();
-
-import posts from './posts';
-import auth from './auth';
-
 const app = express();
 
 if (process.env.VERBOSE === 'true') {

@@ -1,4 +1,4 @@
-class Converter {
+export default class Converter {
   constructor() {
     this.marked = require('marked');
     this.renderer = {
@@ -16,5 +16,3 @@ class Converter {
     return src;
   }
 }
-
-module.exports = Converter;

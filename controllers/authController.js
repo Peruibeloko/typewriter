@@ -1,8 +1,8 @@
-import { authenticator } from 'otplib';
-import jsonwebtoken from 'jsonwebtoken';
-import User from '../models/userModel';
-import Allowlist from '../models/allowlistModel';
 import crypto from 'crypto';
+import jsonwebtoken from 'jsonwebtoken';
+import { authenticator } from 'otplib';
+import Allowlist from '../models/allowlistModel.js';
+import User from '../models/userModel.js';
 
 export const signup = async (req, res) => {
   const { email } = req.body;

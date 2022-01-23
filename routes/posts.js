@@ -1,7 +1,8 @@
-const router = require('express').Router();
+import { Router } from 'express';
+import { checkAuth } from '../controllers/authController.js';
+import * as postController from '../controllers/postController.js';
 
-import * as postController from '../controllers/postController';
-import { checkAuth } from '../controllers/authController';
+const router = Router();
 
 router.get('/', postController.getAllPosts);
 router.post('/', [checkAuth, postController.createPost]);
