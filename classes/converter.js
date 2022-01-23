@@ -1,18 +1,11 @@
-export default class Converter {
-  constructor() {
-    this.marked = require('marked');
-    this.renderer = {
-      paragraph: this.paragraph
-    };
-    this.marked.use({ renderer: this.renderer });
-  }
+import { marked } from 'marked';
 
-  parseMarkdown(post) {
-    const newPost = post.replace(/\n/g, '\\\n');
-    return this.marked(newPost);
-  }
+const rules = {
+  paragraph: src => src
+};
 
-  paragraph(src) {
-    return src;
-  }
-}
+export const parseMarkdown = post => {
+  const newPost = post.replace(/\n/g, '\\\n');
+  marked.use({ renderer: rules });
+  return marked(newPost);
+};

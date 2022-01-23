@@ -1,4 +1,4 @@
-import Converter from '../classes/converter.js';
+import { parseMarkdown } from '../classes/converter.js';
 import Post from '../models/postModel.js';
 
 export const getAllPosts = (req, res) => {
@@ -46,12 +46,11 @@ export const countPosts = (req, res) => {
 };
 
 const convertMarkdownAndSend = (err, post, res) => {
-  const converter = new Converter();
   if (err) {
     res.send(err);
   } else {
     const finalPost = post;
-    finalPost.post = converter.parseMarkdown(post.post);
+    finalPost.post = parseMarkdown(post.post);
     res.send(finalPost);
   }
 };
