@@ -59,6 +59,18 @@ export const getLatestPost = async (req, res) => {
     res.status(500).send(err);
   }
 };
+export const getFirstPost = async (req, res) => {
+  try {
+    const { _doc: result } = await Post.findOne().sort('datetime').exec();
+    const response = {
+      ...result,
+      post: parseMarkdown(result.post)
+    };
+    res.send(response);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
 
 export const createPost = async (req, res) => {
   const newPost = new Post({ ...req.body });

@@ -10,6 +10,7 @@ router.post('/', [checkAuth, postController.createPost]);
 router.get('/field', postController.getFieldsFromAllPosts);
 router.get('/count', postController.countPosts);
 router.get('/latest', postController.getLatestPost);
+router.get('/first', postController.getFirstPost);
 
 router.get('/offset/:offset', postController.getNextPostAfter);
 router.get('/datetime/:datetime', postController.getPostByDate);

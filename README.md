@@ -84,6 +84,10 @@ Returns how many posts there are in the database
 
 Returns the latest post
 
+### `GET /first` - Get first post
+
+Returns the first post ever made. Ever.
+
 ### `GET /offset/:offset` - Get post by offset
 
 Returns the post with the specified offset relative to the latest one.
