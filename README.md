@@ -92,15 +92,15 @@ for example, a `/offset/5` will return the fifth post back from the latest one
 
 This is useful for navigating posts in an orderly manner, relative to time
 
-### `GET /timestamp/:timestamp` - Get post by UNIX milis
+### `GET /datetime/:datetime` - Get post by UNIX milis
 
 UNIX Millis are the way Typewriter uses for creating permalinks
 
-Since timestamps are immutable, a request to `/timestamp/1642997670616` the same post everytime, whereas `/offset/3` could change in case a post gets deleted
+Since timestamps are immutable, a request to `/datetime/1642997670616` the same post everytime, whereas `/offset/3` could change in case a post gets deleted
 
 This is useful for accessing posts directly, using permalinks.
 
-### `PATCH /:timestamp` - Update post (Auth needed)
+### `PATCH /:datetime` - Update post (Auth needed)
 
 Updates the specified post
 
@@ -112,6 +112,6 @@ Payload
 }
 ```
 
-### `DELETE /:timestamp` - Delete post (Auth needed)
+### `DELETE /:datetime` - Delete post (Auth needed)
 
 Deletes the specified post

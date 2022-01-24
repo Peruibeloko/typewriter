@@ -12,9 +12,9 @@ router.get('/count', postController.countPosts);
 router.get('/latest', postController.getLatestPost);
 
 router.get('/offset/:offset', postController.getNextPostAfter);
-router.get('/timestamp/:timestamp', postController.getPostByDate);
+router.get('/datetime/:datetime', postController.getPostByDate);
 
-router.patch('/:timestamp', [checkAuth, postController.updatePost]);
-router.delete('/:timestamp', [checkAuth, postController.deletePost]);
+router.patch('/:datetime', [checkAuth, postController.updatePost]);
+router.delete('/:datetime', [checkAuth, postController.deletePost]);
 
 export default router;

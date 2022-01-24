@@ -7,8 +7,8 @@ export const getPaginatedPosts = async (req, res) => {
   try {
     const results = await Post.find()
       .sort('-datetime')
-      .skip(page - 1 ?? 0)
-      .limit(limit ?? 10)
+      .skip(page * (limit || 10) || 0)
+      .limit(limit || 10)
       .exec();
 
     res.send(results);
@@ -19,7 +19,7 @@ export const getPaginatedPosts = async (req, res) => {
 
 export const getNextPostAfter = async (req, res) => {
   try {
-    const result = await Post.findOne().sort('-datetime').lt('datetime', req.params.offset).exec();
+    const { _doc: result } = await Post.findOne().sort('-datetime').skip(req.params.offset).exec();
 
     const response = {
       ...result,
@@ -34,7 +34,7 @@ export const getNextPostAfter = async (req, res) => {
 
 export const getPostByDate = async (req, res) => {
   try {
-    const result = await Post.findOne({ datetime: new Date(req.params.date) }).exec();
+    const { _doc: result } = await Post.findOne({ datetime: parseInt(req.params.datetime) }).exec();
 
     const response = {
       ...result,
@@ -49,7 +49,7 @@ export const getPostByDate = async (req, res) => {
 
 export const getLatestPost = async (req, res) => {
   try {
-    const result = await Post.findOne().sort('-datetime').exec();
+    const { _doc: result } = await Post.findOne().sort('-datetime').exec();
     const response = {
       ...result,
       post: parseMarkdown(result.post)
@@ -72,7 +72,7 @@ export const createPost = async (req, res) => {
 
 export const updatePost = async (req, res) => {
   try {
-    await Post.updateOne({ timestamp: req.params.timestamp });
+    await Post.updateOne({ datetime: req.params.datetime });
     res.status(200).end();
   } catch (err) {
     res.status(500).send(err);
@@ -81,7 +81,7 @@ export const updatePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
   try {
-    Post.deleteOne({ timestamp: req.params.timestamp });
+    Post.deleteOne({ datetime: req.params.datetime });
   } catch (err) {
     res.status(500).send(err);
   }
@@ -93,9 +93,9 @@ export const getFieldsFromAllPosts = async (req, res) => {
   try {
     const results = await Post.find()
       .sort('-datetime')
-      .skip(page - 1 ?? 0)
-      .limit(limit ?? 10)
-      .projection(req.body.fields)
+      .skip(page * (limit || 10) || 0)
+      .limit(limit || 10)
+      .select(req.body.fields)
       .exec();
 
     res.send(results);
@@ -106,7 +106,8 @@ export const getFieldsFromAllPosts = async (req, res) => {
 
 export const countPosts = async (req, res) => {
   try {
-    Post.countDocuments();
+    const count = await Post.countDocuments().exec();
+    res.json(count);
   } catch (err) {
     res.status(500).send(err);
   }
