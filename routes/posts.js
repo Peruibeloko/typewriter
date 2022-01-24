@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', postController.getPaginatedPosts);
 router.post('/', [checkAuth, postController.createPost]);
 
-router.get('/field', postController.getFieldFromAllPosts);
+router.get('/field', postController.getFieldsFromAllPosts);
 router.get('/count', postController.countPosts);
 router.get('/latest', postController.getLatestPost);
 
