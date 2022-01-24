@@ -4,15 +4,17 @@ import * as postController from '../controllers/postController.js';
 
 const router = Router();
 
-router.get('/', postController.getAllPosts);
+router.get('/', postController.getPaginatedPosts);
 router.post('/', [checkAuth, postController.createPost]);
 
-router.get('/field/:field', postController.getFieldFromAllPosts);
-
+router.get('/field', postController.getFieldFromAllPosts);
 router.get('/count', postController.countPosts);
+router.get('/latest', postController.getLatestPost);
 
-router.get('/:id', postController.getPost);
-router.patch('/:id', [checkAuth, postController.updatePost]);
-router.delete('/:id', [checkAuth, postController.deletePost]);
+router.get('/offset/:offset', postController.getNextPostAfter);
+router.get('/timestamp/:timestamp', postController.getPostByDate);
+
+router.patch('/:timestamp', [checkAuth, postController.updatePost]);
+router.delete('/:timestamp', [checkAuth, postController.deletePost]);
 
 export default router;

@@ -3,17 +3,14 @@ import mongoose from 'mongoose';
 const { model, Schema } = mongoose;
 
 const Post = new Schema({
-  id: {
+  datetime: {
     type: Number,
-    required: 'Post number'
+    default: Date.now,
+    immutable: true
   },
   title: {
     type: String,
     required: 'Post title'
-  },
-  datetime: {
-    type: Date,
-    required: 'Publication date and time'
   },
   author: {
     type: String,

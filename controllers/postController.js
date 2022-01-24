@@ -1,56 +1,113 @@
 import { parseMarkdown } from '../classes/converter.js';
 import Post from '../models/postModel.js';
 
-export const getAllPosts = (req, res) => {
-  Post.find({}, (err, posts) => res.send(err || posts));
-};
+export const getPaginatedPosts = async (req, res) => {
+  const { page, limit } = req.query;
 
-export const getPost = (req, res) => {
-  if (req.params.id === '0') {
-    Post.findOne()
-      .sort('-id')
-      .exec((err, post) => convertMarkdownAndSend(err, post, res));
-  } else {
-    Post.findOne({ id: req.params.id }, (err, post) => convertMarkdownAndSend(err, post, res));
+  try {
+    const results = await Post.find()
+      .sort('-datetime')
+      .skip(page - 1 ?? 0)
+      .limit(limit ?? 10)
+      .exec();
+
+    res.send(results);
+  } catch (err) {
+    res.status(500).send(err);
   }
 };
 
-export const createPost = (req, res) => {
-  Post.findOne()
-    .sort('-id')
-    .exec((err, post) => {
-      if (err) res.send(err);
-      const newPost = new Post({ id: post.id, ...req.body });
-      newPost.save((err, post) => res.send(err || post));
-    });
+export const getNextPostAfter = async (req, res) => {
+  try {
+    const result = await Post.findOne().sort('-datetime').lt('datetime', req.params.offset).exec();
+
+    const response = {
+      ...result,
+      post: parseMarkdown(result.post)
+    };
+
+    res.send(response);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
-export const updatePost = (req, res) => {
-  Post.updateOne({ id: req.params.id }, (err, post) => res.send(err || post));
+export const getPostByDate = async (req, res) => {
+  try {
+    const result = await Post.findOne({ datetime: new Date(req.params.date) }).exec();
+
+    const response = {
+      ...result,
+      post: parseMarkdown(result.post)
+    };
+
+    res.send(response);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
-export const deletePost = (req, res) => {
-  Post.deleteOne({ id: req.params.id }, err =>
-    res.send(err || { message: `Post ${req.params.id} successfully deleted` })
-  );
+export const getLatestPost = async (req, res) => {
+  try {
+    const result = await Post.findOne().sort('-datetime').exec();
+    const response = {
+      ...result,
+      post: parseMarkdown(result.post)
+    };
+    res.send(response);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
-export const getFieldFromAllPosts = (req, res) => {
-  Post.find({}, (err, posts) => res.send(err || posts.map(p => p[req.params.field])));
+export const createPost = async (req, res) => {
+  const newPost = new Post({ ...req.body });
+  try {
+    await newPost.save();
+    res.status(201).end();
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
-export const countPosts = (req, res) => {
-  Post.countDocuments((err, count) => {
-    res.json(err || count);
-  });
+export const updatePost = async (req, res) => {
+  try {
+    await Post.updateOne({ timestamp: req.params.timestamp });
+    res.status(200).end();
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
-const convertMarkdownAndSend = (err, post, res) => {
-  if (err) {
-    res.send(err);
-  } else {
-    const finalPost = post;
-    finalPost.post = parseMarkdown(post.post);
-    res.send(finalPost);
+export const deletePost = async (req, res) => {
+  try {
+    Post.deleteOne({ timestamp: req.params.timestamp });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+export const getFieldsFromAllPosts = async (req, res) => {
+  const { page, limit } = req.query;
+
+  try {
+    const results = await Post.find()
+      .sort('-datetime')
+      .skip(page - 1 ?? 0)
+      .limit(limit ?? 10)
+      .projection(req.body.fields)
+      .exec();
+
+    res.send(results);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+export const countPosts = async (req, res) => {
+  try {
+    Post.countDocuments();
+  } catch (err) {
+    res.status(500).send(err);
   }
 };
