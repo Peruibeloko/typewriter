@@ -44,7 +44,7 @@ Typewriter's interface with the world is a REST API, which provides basic blogke
 
 ### `GET /post` - Get all posts
 
-Returns all posts using pagination
+Returns a listing of the title, creation timestamp, author and title of all posts in a paginated fashion
 
 Control results using the `page` and `limit` (default is 10) query parameters.
 
@@ -62,49 +62,29 @@ Payload
 }
 ```
 
-### `GET /field` - Get fields from all posts
+### `GET /post/count` - Count posts
 
-Retrieves just the informed fields from all posts
+Returns how many posts there are in your blog
 
-Uses same pagination mechanics as `getAllPosts`
+### `GET /post/latest` - Get latest post ID
 
-Payload
+Returns the ID for the latest post
 
-```json
-{
-  "fields": "title author"
-}
-```
+### `GET /post/first` - Get first post ID
 
-### `GET /count` - Count posts
+Returns the ID for the first post ever made. Ever.
 
-Returns how many posts there are in the database
+### `GET /post/random` - Get random post ID
 
-### `GET /latest` - Get latest post
+Returns the ID for a random post
 
-Returns the latest post
+### `GET /post/:id` - Get post by ID
 
-### `GET /first` - Get first post
-
-Returns the first post ever made. Ever.
-
-### `GET /offset/:offset` - Get post by offset
-
-Returns the post with the specified offset relative to the latest one.
-
-for example, a `/offset/5` will return the fifth post back from the latest one
-
-This is useful for navigating posts in an orderly manner, relative to time
-
-### `GET /datetime/:datetime` - Get post by UNIX milis
-
-UNIX Millis are the way Typewriter uses for creating permalinks
-
-Since timestamps are immutable, a request to `/datetime/1642997670616` the same post everytime, whereas `/offset/3` could change in case a post gets deleted
+Pretty straightforward.
 
 This is useful for accessing posts directly, using permalinks.
 
-### `PATCH /:datetime` - Update post (Auth needed)
+### `PATCH /post/:id` - Update post (Auth needed)
 
 Updates the specified post
 
@@ -112,10 +92,22 @@ Payload
 
 ```json
 {
-  "title": "New Title!! (Now with 100% more exemplification)"
+  "title": "New Title!! (Now with 100% more examples!)"
 }
 ```
 
-### `DELETE /:datetime` - Delete post (Auth needed)
+### `DELETE /post/:id` - Delete post (Auth needed)
 
 Deletes the specified post
+
+### `GET /post/:id/next` - Get next post ID
+
+- Tomorrow's post (You'll get the ID for this post)
+- Today's post (You are here)
+- Yesterday's post
+
+### `GET /post/:id/prev` - Get previous post ID
+
+- Tomorrow's post
+- Today's post (You are here)
+- Yesterday's post (You'll get the ID for this post)

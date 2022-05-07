@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import auth from './auth.js';
-import posts from './posts.js';
+import posts from './post.js';
 
 const router = Router();
 const app = express();
