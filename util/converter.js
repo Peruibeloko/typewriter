@@ -8,11 +8,11 @@ export const printMarkdownToHTML = markdown => {
 };
 
 export const sendParsedPost = (req, res) => {
-  const { doc } = res.locals;
+  const { post, ...postInfo } = res.locals.doc;
 
   const response = {
-    ...doc,
-    post: printMarkdownToHTML(doc.post)
+    ...postInfo,
+    content: printMarkdownToHTML(post)
   };
 
   res.send(response).end();

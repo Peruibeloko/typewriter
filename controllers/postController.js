@@ -1,4 +1,3 @@
-import { printMarkdownToHTML } from '../util/converter.js';
 import Post from '../models/postModel.js';
 
 export const getPaginatedPosts = async (req, res) => {
@@ -68,7 +67,9 @@ export const getRandomPostId = async (req, res) => {
 
 export const getPostById = async (req, res, next) => {
   try {
-    res.locals.doc = await Post.findById(parseInt(req.params.id)).exec();
+    res.locals.doc = await Post.findById(req.params.id)
+      .exec()
+      .then(val => val._doc);
 
     if (!res.locals.doc) res.status(404).send(`Post with id ${req.params.id} doesn't exist`).end();
 
