@@ -6,18 +6,3 @@ export const printMarkdownToHTML = markdown => {
     gfm: true
   });
 };
-
-export const sendParsedPost = (req, res) => {
-  const {
-    post: { post: postContent, ...postInfo },
-    prevPostId,
-    nextPostId
-  } = res.locals;
-
-  const postObject = {
-    ...postInfo,
-    content: printMarkdownToHTML(postContent)
-  };
-
-  res.send({ postObject, prevPostId, nextPostId }).end();
-};

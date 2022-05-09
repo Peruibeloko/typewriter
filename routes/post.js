@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { checkAuth } from '../controllers/authController.js';
 import * as postController from '../controllers/postController.js';
-import { sendParsedPost } from '../util/converter.js';
 
 const router = Router();
 
@@ -13,7 +12,7 @@ router.get('/latest', postController.getLatestPostId);
 router.get('/first', postController.getFirstPostId);
 router.get('/random', postController.getRandomPostId);
 
-router.get('/:id', [postController.getPostById, sendParsedPost]);
+router.get('/:id', postController.getPostById);
 router.patch('/:id', [checkAuth, postController.updatePost]);
 router.delete('/:id', [checkAuth, postController.deletePost]);
 
