@@ -4,8 +4,7 @@ export const getPaginatedPosts = async (req, res) => {
   const { page = 0, limit = 10 } = req.query;
 
   try {
-    const results = await Post.find()
-      .select('_id title datetime author')
+    const results = await Post.find({}, 'title datetime author')
       .sort('-datetime')
       .skip(page * limit)
       .limit(limit)
@@ -67,11 +66,20 @@ export const getRandomPostId = async (req, res) => {
 
 export const getPostById = async (req, res, next) => {
   try {
-    res.locals.doc = await Post.findById(req.params.id)
+    res.locals.post = await Post.findById(req.params.id)
       .exec()
       .then(val => val._doc);
+    if (!res.locals.post) res.status(404).send(`Post with id ${req.params.id} doesn't exist`).end();
 
-    if (!res.locals.doc) res.status(404).send(`Post with id ${req.params.id} doesn't exist`).end();
+    const [prevPostId, nextPostId] = await getNeighbouringPostsByTimestamp(
+      res.locals.post.datetime
+    );
+
+    res.locals = {
+      ...res.locals,
+      prevPostId,
+      nextPostId
+    };
 
     next();
   } catch (err) {
@@ -123,4 +131,16 @@ export const getPreviousPostId = async (req, res) => {
   } catch (err) {
     res.status(500).send(err);
   }
+};
+
+const getNeighbouringPostsByTimestamp = async timestamp => {
+  return Promise.allSettled([
+    await Post.findOne({ datetime: { $lt: timestamp } }, 'id')
+      .sort('-datetime')
+      .exec(),
+    ,
+    await Post.findOne({ datetime: { $gt: timestamp } }, 'id')
+      .sort('datetime')
+      .exec()
+  ]).then(promises => promises.map(promise => promise.value._id));
 };

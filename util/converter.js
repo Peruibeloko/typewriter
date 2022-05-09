@@ -8,12 +8,16 @@ export const printMarkdownToHTML = markdown => {
 };
 
 export const sendParsedPost = (req, res) => {
-  const { post, ...postInfo } = res.locals.doc;
+  const {
+    post: { post: postContent, ...postInfo },
+    prevPostId,
+    nextPostId
+  } = res.locals;
 
-  const response = {
+  const postObject = {
     ...postInfo,
-    content: printMarkdownToHTML(post)
+    content: printMarkdownToHTML(postContent)
   };
 
-  res.send(response).end();
+  res.send({ postObject, prevPostId, nextPostId }).end();
 };
