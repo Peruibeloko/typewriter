@@ -38,7 +38,7 @@ export const countPosts = async (req, res) => {
 export const getLatestPostId = async (req, res) => {
   try {
     const { _id: lastPostId } = await Post.findOne({}, 'id').sort('-datetime').exec();
-    res.send(lastPostId);
+    res.json(lastPostId);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -46,7 +46,7 @@ export const getLatestPostId = async (req, res) => {
 export const getFirstPostId = async (req, res) => {
   try {
     const { _id: firstPostId } = await Post.findOne({}, 'id').sort('datetime').exec();
-    res.send(firstPostId);
+    res.json(firstPostId);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -65,25 +65,26 @@ export const getRandomPostId = async (req, res) => {
   }
 };
 
-export const getPostById = async (req, res, next) => {
+export const getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id)
+    const { post: postContent, ...postData } = await Post.findById(req.params.id)
       .exec()
       .then(val => val._doc);
-    if (!post) res.status(404).send(`Post with id ${req.params.id} doesn't exist`).end();
 
-    const { prevPostId, nextPostId } = await getNeighbouringPostsByTimestamp(post.datetime);
+    if (!postData) return res.status(404).send(`Post with id ${req.params.id} doesn't exist`);
+
+    const { prevPostId, nextPostId } = await getNeighbouringPostsByTimestamp(postData.datetime);
 
     const result = {
       postData: {
-        ...postInfo,
+        ...postData,
         content: printMarkdownToHTML(postContent)
       },
       prevPostId,
       nextPostId
     };
 
-    res.send(result).end();
+    res.json(result);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -100,6 +101,7 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   try {
     Post.deleteOne({ id: req.params.id });
+    res.sendStatus(200);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -113,8 +115,8 @@ export const getNextPostId = async (req, res) => {
       .sort('-datetime')
       .exec();
 
-    if (!nextPost) res.sendStatus(404).end();
-    res.send(nextPost._id).end();
+    if (!nextPost) return res.sendStatus(404);
+    res.json(nextPost._id);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -128,8 +130,8 @@ export const getPreviousPostId = async (req, res) => {
       .sort('-datetime')
       .exec();
 
-    if (!prevPost) res.sendStatus(404).end();
-    res.send(prevPost._id).end();
+    if (!prevPost) return res.sendStatus(404);
+    res.json(prevPost._id);
   } catch (err) {
     res.status(500).send(err);
   }

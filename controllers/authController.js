@@ -71,6 +71,6 @@ export const checkAuth = async (req, res, next) => {
     jsonwebtoken.verify(authHeader, signingSecret);
     next();
   } catch (err) {
-    return res.status(403).send(err).end();
+    return res.status(403).send(err);
   }
 };
