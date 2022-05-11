@@ -55,7 +55,7 @@ export const getFirstPostId = async (req, res) => {
 export const getRandomPostId = async (req, res) => {
   try {
     const count = await Post.countDocuments().exec();
-    const chosen = Math.floor(Math.random() * count) - 1;
+    const chosen = Math.floor(Math.random() * count);
 
     const { _id: postId } = await Post.findOne({}, 'id').skip(chosen).limit(1).exec();
 
