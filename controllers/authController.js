@@ -21,7 +21,7 @@ export const signup = async (req, res) => {
   const user = new User({ _id: email, secret, timestamp: Date.now() });
   try {
     await user.save();
-    res.send(secret);
+    res.status(201).send(secret);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -30,11 +30,11 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const user = await User.findById(req.body.email).exec();
 
-  if (!user) return res.status(404).send(`No user for email ${user._id} was found`);
+  if (!user) return res.status(404).send(`No user for email ${req.body.email} was found`);
 
   const isTokenValid = authenticator.check(`${req.body.token}`, user.secret);
 
-  if (!isTokenValid) return res.status(403).send('Invalid OTP');
+  if (!isTokenValid) return res.status(400).send('Invalid OTP');
 
   const signingSecret = crypto
     .createHash('sha256')
@@ -46,21 +46,28 @@ export const login = async (req, res) => {
     expiresIn: '12h'
   });
 
-  res.send(jwt);
+  res.status(200).send(jwt);
 };
 
 export const checkAuth = async (req, res, next) => {
-  const authHeader = req.headers.authorization?.replace('Bearer ', '');
+  const authHeader = req.headers.authorization;
 
-  if (!authHeader) return res.status(403).send('Missing authentication header');
+  if (!authHeader)
+    return res
+      .status(401)
+      .set('WWW-Authenticate', 'Bearer realm="Access to protected resource"')
+      .send('Missing authentication header');
 
-  const decodedJWT = jsonwebtoken.decode(authHeader);
+  const token = authHeader.split(' ')[1];
+  const decodedJWT = jsonwebtoken.decode(token);
 
-  if (!decodedJWT) return res.status(403).send('Malformed authentication header');
+  if (!decodedJWT) return res.status(400).send('Malformed authentication header');
 
-  const user = await User.findById(decodedJWT.aud, 'secret timestamp').exec();
+  const user = await User.findById(decodedJWT.aud, 'secret timestamp', {
+    isRegistered: { $eq: true }
+  }).exec();
 
-  if (!user) return res.status(403).send('Unknown user');
+  if (!user) return res.status(404).send('Unknown user');
 
   const signingSecret = crypto
     .createHash('sha256')
@@ -68,9 +75,9 @@ export const checkAuth = async (req, res, next) => {
     .digest('hex');
 
   try {
-    jsonwebtoken.verify(authHeader, signingSecret);
+    jsonwebtoken.verify(token, signingSecret);
     next();
   } catch (err) {
-    return res.status(403).send(err);
+    return res.status(400).send('JWT signature invalid');
   }
 };

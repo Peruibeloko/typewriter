@@ -1,6 +1,6 @@
-import 'dotenv/config' 
+import 'dotenv/config';
 import cors from 'cors';
-import express, { json, urlencoded } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
 import routes from './routes/index.js';
 
@@ -11,15 +11,25 @@ mongoose.connect(process.env.MONGODB_URL, {
   useUnifiedTopology: true
 });
 
-app.use(urlencoded({ extended: true }));
-app.use(json());
+app.use(express.json());
 app.use(
   cors({
     origin: process.env.BLOG_URL,
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
   })
 );
 
+if (process.env.VERBOSE === 'true') {
+  app.use((req, res, next) => {
+    console.log(
+      `[${new Date().toLocaleString('pt-BR')}] Received ${req.method} ${req.path}${
+        req.body ? ' with body\n' : ''
+      }`,
+      req.body
+    );
+    next();
+  });
+}
 app.use('/healthcheck', (req, res) => res.send('OK'));
 app.use(routes);
 
