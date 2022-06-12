@@ -16,7 +16,7 @@ export const getPaginatedPosts = (req, res) => {
     })
     .exec()
     .then(docs => res.send(docs))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const createPost = (req, res) => {
@@ -24,14 +24,14 @@ export const createPost = (req, res) => {
   newPost
     .save()
     .then(({ _id }) => res.status(201).json(_id))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const countPosts = (_req, res) => {
   Post.countDocuments()
     .exec()
     .then(count => res.json(count))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const getLatestPostId = (_req, res) => {
@@ -39,14 +39,14 @@ export const getLatestPostId = (_req, res) => {
     .sort('-createdAt')
     .exec()
     .then(({ _id }) => res.json(_id))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 export const getFirstPostId = (_req, res) => {
   Post.findOne({}, 'id')
     .sort('createdAt')
     .exec()
     .then(({ _id }) => res.json(_id))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const getRandomPostId = async (_req, res) => {
@@ -58,7 +58,7 @@ export const getRandomPostId = async (_req, res) => {
     .limit(1)
     .exec()
     .then(({ _id }) => res.send(_id))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const getPostById = async (req, res) => {
@@ -99,13 +99,13 @@ export const updatePost = async (req, res) => {
     .exec()
     .then(val => val._doc);
 
-  if (postAuthor !== req.userInfo.aud)
+  if (postAuthor !== req.userInfo.email)
     return res.status(403).send("You're not allowed to edit other users posts");
 
   Post.updateOne({ id: req.params.id }, req.body)
     .exec()
     .then(() => res.sendStatus(200))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const deletePost = async (req, res) => {
@@ -119,13 +119,13 @@ export const deletePost = async (req, res) => {
     .exec()
     .then(val => val._doc);
 
-  if (postAuthor !== req.userInfo.aud)
+  if (postAuthor !== req.userInfo.email)
     return res.status(403).send("You're not allowed to delete other users posts");
 
   Post.deleteOne({ id: req.params.id })
     .exec()
     .then(() => res.sendStatus(200))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const getNextPostId = async (req, res) => {

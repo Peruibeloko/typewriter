@@ -4,10 +4,10 @@ import * as draftController from '../controllers/draftController.js';
 
 const router = Router();
 
-router.get('/', draftController.getPaginatedDrafts);
+router.get('/', [checkAuth, draftController.getPaginatedDrafts]);
 router.post('/', [checkAuth, draftController.createDraft]);
 
-router.get('/:id', draftController.getDraftById);
+router.get('/:id', [checkAuth, draftController.getDraftById]);
 router.patch('/:id', [checkAuth, draftController.updateDraft]);
 router.delete('/:id', [checkAuth, draftController.deleteDraft]);
 

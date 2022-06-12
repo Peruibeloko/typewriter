@@ -23,7 +23,7 @@ export const signup = async (req, res) => {
     await user.save();
     res.status(201).send(secret);
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).send(err.message);
   }
 };
 
@@ -75,7 +75,10 @@ export const checkAuth = async (req, res, next) => {
     .digest('hex');
 
   try {
-    req.userInfo = jsonwebtoken.verify(token, signingSecret);
+    const tokenData = jsonwebtoken.verify(token, signingSecret);
+    req.userInfo = {
+      email: tokenData.aud
+    };
     next();
   } catch (err) {
     return res.status(400).send('JWT signature invalid');

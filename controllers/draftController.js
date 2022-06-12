@@ -5,10 +5,8 @@ export const getPaginatedDrafts = (req, res) => {
 
   Draft.find(
     {
-      $where: {
-        author: {
-          $eq: req.userInfo.aud
-        }
+      author: {
+        $eq: req.userInfo.email
       }
     },
     'id title updatedAt createdAt'
@@ -24,7 +22,7 @@ export const getPaginatedDrafts = (req, res) => {
     })
     .exec()
     .then(docs => res.send(docs))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const getDraftById = async (req, res) => {
@@ -39,7 +37,7 @@ export const getDraftById = async (req, res) => {
 
   if (!postData) return res.status(404).send(`Draft with id ${req.params.id} doesn't exist`);
 
-  if (postData.author._id !== req.userInfo.aud)
+  if (postData.author._id !== req.userInfo.email)
     return res.status(403).send("You're not allowed to view other users drafts");
 
   res.json({ ...postData, author: postData.author.displayName });
@@ -53,7 +51,7 @@ export const createDraft = (req, res) => {
   newDraft
     .save()
     .then(({ _id }) => res.status(201).json(_id))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const updateDraft = async (req, res) => {
@@ -70,13 +68,13 @@ export const updateDraft = async (req, res) => {
     .exec()
     .then(val => val._doc);
 
-  if (authorId !== req.userInfo.aud)
+  if (authorId !== req.userInfo.email)
     return res.status(403).send("You're not allowed to edit other users drafts");
 
   Draft.updateOne({ id: req.params.id }, req.body)
     .exec()
     .then(() => res.sendStatus(200))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
 
 export const deleteDraft = async (req, res) => {
@@ -90,11 +88,11 @@ export const deleteDraft = async (req, res) => {
     .exec()
     .then(val => val._doc);
 
-  if (authorId !== req.userInfo.aud)
+  if (authorId !== req.userInfo.email)
     return res.status(403).send("You're not allowed to delete other users drafts");
 
   Draft.deleteOne({ id: req.params.id })
     .exec()
     .then(() => res.sendStatus(200))
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send(err.message));
 };
