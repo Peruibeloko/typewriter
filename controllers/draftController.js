@@ -11,7 +11,7 @@ export const getPaginatedDrafts = (req, res) => {
         }
       }
     },
-    'title updatedAt createdAt'
+    'id title updatedAt createdAt'
   )
     .sort('-updatedAt')
     .skip((page - 1) * limit)
