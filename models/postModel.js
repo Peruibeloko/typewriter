@@ -2,24 +2,24 @@ import mongoose from 'mongoose';
 
 const { model, Schema } = mongoose;
 
-const Post = new Schema({
-  datetime: {
-    type: Number,
-    default: Date.now,
-    immutable: true
+const Post = new Schema(
+  {
+    title: {
+      type: String,
+      required: 'Title is missing'
+    },
+    author: {
+      type: String,
+      ref: 'User',
+      required: 'Author is missing',
+      immutable: true
+    },
+    post: {
+      type: String,
+      required: 'Content is missing'
+    }
   },
-  title: {
-    type: String,
-    required: 'Post title'
-  },
-  author: {
-    type: String,
-    required: 'Author'
-  },
-  post: {
-    type: String,
-    required: 'Post content in Commonmark format'
-  }
-});
+  { timestamps: true }
+);
 
 export default model('Post', Post);

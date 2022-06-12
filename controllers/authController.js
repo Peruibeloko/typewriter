@@ -18,7 +18,7 @@ export const signup = async (req, res) => {
 
   const secret = authenticator.generateSecret();
 
-  const user = new User({ _id: email, secret, timestamp: Date.now() });
+  const user = new User({ _id: email, secret, creationDate: Date.now() });
   try {
     await user.save();
     res.status(201).send(secret);
@@ -38,7 +38,7 @@ export const login = async (req, res) => {
 
   const signingSecret = crypto
     .createHash('sha256')
-    .update(`${user.secret}${user.timestamp}`)
+    .update(`${user.secret}${user.creationDate}`)
     .digest('hex');
 
   const jwt = jsonwebtoken.sign({}, signingSecret, {
@@ -63,7 +63,7 @@ export const checkAuth = async (req, res, next) => {
 
   if (!decodedJWT) return res.status(400).send('Malformed authentication header');
 
-  const user = await User.findById(decodedJWT.aud, 'secret timestamp', {
+  const user = await User.findById(decodedJWT.aud, 'secret creationDate', {
     isRegistered: { $eq: true }
   }).exec();
 
@@ -71,11 +71,11 @@ export const checkAuth = async (req, res, next) => {
 
   const signingSecret = crypto
     .createHash('sha256')
-    .update(`${user.secret}${user.timestamp}`)
+    .update(`${user.secret}${user.creationDate}`)
     .digest('hex');
 
   try {
-    jsonwebtoken.verify(token, signingSecret);
+    req.userInfo = jsonwebtoken.verify(token, signingSecret);
     next();
   } catch (err) {
     return res.status(400).send('JWT signature invalid');

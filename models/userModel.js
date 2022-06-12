@@ -5,15 +5,22 @@ const { model, Schema } = mongoose;
 const userSchema = new Schema({
   _id: {
     type: String,
-    required: 'User email'
+    required: 'User email',
+    match: /^\s+@\s+\.\s+$/
+  },
+  displayName: {
+    type: String,
+    required: 'Display name is missing'
   },
   secret: {
     type: String,
-    required: '2FA generation secret token'
+    required: '2FA generation secret token is missing',
+    immutable: true
   },
-  timestamp: {
+  creationDate: {
     type: Number,
-    required: 'Time of creation'
+    default: Date.now,
+    immutable: true
   }
 });
 

@@ -1,149 +1,162 @@
 import Post from '../models/postModel.js';
 import { printMarkdownToHTML } from '../util/converter.js';
 
-export const getPaginatedPosts = async (req, res) => {
-  const { page = 0, limit = 10 } = req.query;
+export const getPaginatedPosts = (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
 
-  try {
-    const results = await Post.find({}, 'title datetime author')
-      .sort('-datetime')
-      .skip(page * limit)
-      .limit(limit)
-      .exec();
-
-    res.send(results);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  Post.find({}, 'createdAt title author')
+    .sort('-createdAt')
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .populate({
+      path: 'author',
+      select: 'displayName',
+      strictPopulate: false,
+      transform: doc => doc.displayName
+    })
+    .exec()
+    .then(docs => res.send(docs))
+    .catch(err => res.status(500).send(err));
 };
 
-export const createPost = async (req, res) => {
+export const createPost = (req, res) => {
   const newPost = new Post({ ...req.body });
-  try {
-    const { _id } = await newPost.save();
-    res.status(201).json(_id);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  newPost
+    .save()
+    .then(({ _id }) => res.status(201).json(_id))
+    .catch(err => res.status(500).send(err));
 };
 
-export const countPosts = async (req, res) => {
-  try {
-    res.json(count);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+export const countPosts = (_req, res) => {
+  Post.countDocuments()
+    .exec()
+    .then(count => res.json(count))
+    .catch(err => res.status(500).send(err));
 };
 
-export const getLatestPostId = async (req, res) => {
-  try {
-    const { _id: lastPostId } = await Post.findOne({}, 'id').sort('-datetime').exec();
-    res.json(lastPostId);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+export const getLatestPostId = (_req, res) => {
+  Post.findOne({}, 'id')
+    .sort('-createdAt')
+    .exec()
+    .then(({ _id }) => res.json(_id))
+    .catch(err => res.status(500).send(err));
 };
-export const getFirstPostId = async (req, res) => {
-  try {
-    const { _id: firstPostId } = await Post.findOne({}, 'id').sort('datetime').exec();
-    res.json(firstPostId);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+export const getFirstPostId = (_req, res) => {
+  Post.findOne({}, 'id')
+    .sort('createdAt')
+    .exec()
+    .then(({ _id }) => res.json(_id))
+    .catch(err => res.status(500).send(err));
 };
 
-export const getRandomPostId = async (req, res) => {
-  try {
-    const count = await Post.countDocuments().exec();
-    const chosen = Math.floor(Math.random() * count);
+export const getRandomPostId = async (_req, res) => {
+  const count = await Post.countDocuments().exec();
+  const chosen = Math.floor(Math.random() * count);
 
-    const { _id: postId } = await Post.findOne({}, 'id').skip(chosen).limit(1).exec();
-
-    res.send(postId);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  Post.findOne({}, 'id')
+    .skip(chosen)
+    .limit(1)
+    .exec()
+    .then(({ _id }) => res.send(_id))
+    .catch(err => res.status(500).send(err));
 };
 
 export const getPostById = async (req, res) => {
-  try {
-    const { post: postContent, ...postData } = await Post.findById(req.params.id)
-      .exec()
-      .then(val => val._doc);
+  const { post: postContent, ...postData } = await Post.findById(req.params.id)
+    .populate({
+      path: 'author',
+      select: 'displayName',
+      strictPopulate: false,
+      transform: doc => doc.displayName
+    })
+    .exec()
+    .then(val => val._doc);
 
-    if (!postData) return res.status(404).send(`Post with id ${req.params.id} doesn't exist`);
+  if (!postData) return res.status(404).send(`Post with id ${req.params.id} doesn't exist`);
 
-    const { prevPostId, nextPostId } = await getNeighbouringPostsByTimestamp(postData.datetime);
+  const { prevPostId, nextPostId } = await getNeighbouringPostsByTimestamp(postData.createdAt);
 
-    const result = {
-      postData: {
-        ...postData,
-        content: printMarkdownToHTML(postContent)
-      },
-      prevPostId,
-      nextPostId
-    };
+  const result = {
+    postData: {
+      ...postData,
+      content: printMarkdownToHTML(postContent)
+    },
+    prevPostId,
+    nextPostId
+  };
 
-    res.json(result);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  res.json(result);
 };
+
 export const updatePost = async (req, res) => {
-  try {
-    await Post.updateOne({ id: req.params.id });
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  const postAuthor = await Post.findById(req.params.id, 'author')
+    .populate({
+      path: 'author',
+      select: 'id',
+      strictPopulate: false,
+      transform: doc => doc._id
+    })
+    .exec()
+    .then(val => val._doc);
+
+  if (postAuthor !== req.userInfo.aud)
+    return res.status(403).send("You're not allowed to edit other users posts");
+
+  Post.updateOne({ id: req.params.id }, req.body)
+    .exec()
+    .then(() => res.sendStatus(200))
+    .catch(err => res.status(500).send(err));
 };
 
 export const deletePost = async (req, res) => {
-  try {
-    Post.deleteOne({ id: req.params.id });
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  const postAuthor = await Post.findById(req.params.id, 'author')
+    .populate({
+      path: 'author',
+      select: 'id',
+      strictPopulate: false,
+      transform: doc => doc._id
+    })
+    .exec()
+    .then(val => val._doc);
+
+  if (postAuthor !== req.userInfo.aud)
+    return res.status(403).send("You're not allowed to delete other users posts");
+
+  Post.deleteOne({ id: req.params.id })
+    .exec()
+    .then(() => res.sendStatus(200))
+    .catch(err => res.status(500).send(err));
 };
 
 export const getNextPostId = async (req, res) => {
-  try {
-    const { _doc: currentPost } = await Post.findById(req.params.id, 'datetime');
+  const { _doc: currentPost } = await Post.findById(req.params.id, 'createdAt');
 
-    const nextPost = await Post.findOne({ datetime: { $gt: currentPost.datetime } }, 'id')
-      .sort('-datetime')
-      .exec();
+  const nextPost = await Post.findOne({ createdAt: { $gt: currentPost.createdAt } }, 'id')
+    .sort('-createdAt')
+    .exec();
 
-    if (!nextPost) return res.sendStatus(404);
-    res.json(nextPost._id);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  if (!nextPost) return res.sendStatus(404);
+  res.json(nextPost._id);
 };
 
 export const getPreviousPostId = async (req, res) => {
-  try {
-    const { _doc: currentPost } = await Post.findById(req.params.id, 'datetime');
+  const { _doc: currentPost } = await Post.findById(req.params.id, 'createdAt');
 
-    const prevPost = await Post.findOne({ datetime: { $lt: currentPost.datetime } }, 'id')
-      .sort('-datetime')
-      .exec();
+  const prevPost = await Post.findOne({ createdAt: { $lt: currentPost.createdAt } }, 'id')
+    .sort('-createdAt')
+    .exec();
 
-    if (!prevPost) return res.sendStatus(404);
-    res.json(prevPost._id);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  if (!prevPost) return res.sendStatus(404);
+  res.json(prevPost._id);
 };
 
 const getNeighbouringPostsByTimestamp = async timestamp => {
   const promises = await Promise.allSettled([
-    await Post.findOne({ datetime: { $lt: timestamp } }, 'id')
-      .sort('-datetime')
+    await Post.findOne({ createdAt: { $lt: timestamp } }, 'id')
+      .sort('-createdAt')
       .exec(),
-    await Post.findOne({ datetime: { $gt: timestamp } }, 'id')
-      .sort('datetime')
+    await Post.findOne({ createdAt: { $gt: timestamp } }, 'id')
+      .sort('createdAt')
       .exec()
   ]).then(promises => promises.map(promise => promise.value?._id ?? null));
 
