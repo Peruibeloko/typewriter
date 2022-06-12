@@ -11,7 +11,7 @@ export const getPaginatedDrafts = (req, res) => {
         }
       }
     },
-    'updatedAt title author'
+    'title updatedAt createdAt'
   )
     .sort('-updatedAt')
     .skip((page - 1) * limit)
@@ -46,6 +46,9 @@ export const getDraftById = async (req, res) => {
 };
 
 export const createDraft = (req, res) => {
+  if (!(req.body.content || req.body.title))
+    return res.status(500).send('Either title, content or both must be filled');
+
   const newDraft = new Draft({ ...req.body });
   newDraft
     .save()
@@ -54,6 +57,9 @@ export const createDraft = (req, res) => {
 };
 
 export const updateDraft = async (req, res) => {
+  if (!(req.body.content || req.body.title))
+    return res.status(500).send('Either title, content or both must be filled');
+
   const authorId = await Draft.findById(req.params.id)
     .populate({
       path: 'author',
@@ -85,7 +91,7 @@ export const deleteDraft = async (req, res) => {
     .then(val => val._doc);
 
   if (authorId !== req.userInfo.aud)
-    return res.status(403).send("You're not allowed to edit other users drafts");
+    return res.status(403).send("You're not allowed to delete other users drafts");
 
   Draft.deleteOne({ id: req.params.id })
     .exec()
