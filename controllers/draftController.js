@@ -3,6 +3,8 @@ import Draft from '../models/draftModel.js';
 export const getPaginatedDrafts = (req, res) => {
   const { page = 1, limit = 10 } = req.query;
 
+  console.log(req.userInfo);
+
   Draft.find(
     {
       author: {
@@ -47,7 +49,7 @@ export const createDraft = (req, res) => {
   if (!(req.body.content || req.body.title))
     return res.status(500).send('Either title, content or both must be filled');
 
-  const newDraft = new Draft({ ...req.body });
+  const newDraft = new Draft({ ...req.body, author: req.userInfo.email });
   newDraft
     .save()
     .then(({ _id }) => res.status(201).json(_id))

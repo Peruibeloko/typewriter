@@ -12,7 +12,10 @@ const Draft = new Schema(
       type: String
     },
     author: {
-      type: String
+      type: String,
+      ref: 'User',
+      required: 'Author is missing',
+      immutable: true
     },
     post: {
       type: String
