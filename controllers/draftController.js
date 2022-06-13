@@ -3,8 +3,6 @@ import Draft from '../models/draftModel.js';
 export const getPaginatedDrafts = (req, res) => {
   const { page = 1, limit = 10 } = req.query;
 
-  console.log(req.userInfo);
-
   Draft.find(
     {
       author: {
@@ -28,21 +26,25 @@ export const getPaginatedDrafts = (req, res) => {
 };
 
 export const getDraftById = async (req, res) => {
-  const postData = await Draft.findById(req.params.id)
-    .populate({
-      path: 'author',
-      select: 'displayName id',
-      strictPopulate: false
-    })
-    .exec()
-    .then(val => val._doc);
+  try {
+    const postData = await Draft.findById(req.params.id)
+      .populate({
+        path: 'author',
+        select: 'displayName id',
+        strictPopulate: false
+      })
+      .exec()
+      .then(val => val._doc);
 
-  if (!postData) return res.status(404).send(`Draft with id ${req.params.id} doesn't exist`);
+    if (!postData) return res.status(404).send(`Draft with id ${req.params.id} doesn't exist`);
 
-  if (postData.author._id !== req.userInfo.email)
-    return res.status(403).send("You're not allowed to view other users drafts");
+    if (postData.author._id !== req.userInfo.email)
+      return res.status(403).send("You're not allowed to view other users drafts");
 
-  res.json({ ...postData, author: postData.author.displayName });
+    res.json({ ...postData, author: postData.author.displayName });
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
 export const createDraft = (req, res) => {
