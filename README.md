@@ -1,8 +1,6 @@
 # Typewriter
 
-I hate WordPress.
-
-So I just wrote my own bare-bones CMS.
+Its a bare-bones CMS, there's really no reason to use this.
 
 ## Installation
 
