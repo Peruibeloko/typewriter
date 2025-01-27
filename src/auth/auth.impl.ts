@@ -1,34 +1,29 @@
-import * as crypto from 'crypto';
-import { RequestHandler } from 'express';
-import { default as jsonwebtoken } from 'jsonwebtoken';
-import { authenticator } from 'otplib';
-import Allowlist from '../models/allowlistModel.js';
-import User from '../models/userModel.js';
+import { unthrow } from '@/utils.ts';
+import { encodeBase64 } from '@std/encoding';
 
-export const signup: RequestHandler = async (req, res) => {
-  const { email } = req.body as { email: string };
-
-  if (!email) return res.status(400).send('Missing user email');
+export async function signup(email: string) {
+  if (!email) {
+    return Result.fail({ message: 'Missing user email', code: 400 });
+  }
 
   const queryResult = await Allowlist.findById(email).exec();
 
-  if (!queryResult) return res.status(403).send('User not in allowlist');
-  if (queryResult.isRegistered) return res.status(409).send('User already registered');
+  if (!queryResult) return Result.fail({ message: 'User not in allowlist', code: 403 });
+  if (queryResult.isRegistered) return new Failiure('User already registered', 409);
 
   await Allowlist.findByIdAndUpdate(email, { isRegistered: true }).exec();
 
   const secret = authenticator.generateSecret();
 
   const user = new User({ _id: email, secret });
-  try {
-    await user.save();
-    res.status(201).send(secret);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
 
-export const login: RequestHandler = async (req, res) => {
+  const result = await unthrow(() => user.save());
+
+  if (result instanceof Error) return new Failiure(result.message, 500);
+  return;
+}
+
+export async function login(req, res): RequestHandler {
   const user = await User.findById(req.body.email).exec();
 
   if (!user) return res.status(404).send(`No user for email ${req.body.email} was found`);
@@ -37,18 +32,28 @@ export const login: RequestHandler = async (req, res) => {
 
   if (!isTokenValid) return res.status(400).send('Invalid OTP');
 
-  const signingSecret = crypto
-    .createHash('sha256')
-    .update(`${user.secret}${user.createdAt}`)
-    .digest('hex');
+  const signingSecret = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(`${user.secret}${user.createdAt}`)
+  );
 
-  const jwt = jsonwebtoken.sign({}, signingSecret, {
-    audience: `${user._id}`,
-    expiresIn: '12h'
-  });
+  const header = encodeBase64(
+    JSON.stringify({
+      aud: `${user._id}`,
+      expiresIn: '12h'
+    })
+  );
+
+  const body = encodeBase64(JSON.stringify({}));
+
+  crypto.subtle.deriveKey('PBKDF2', signingSecret, 'HMAC');
+
+  const signature = crypto.subtle.sign('HMAC', signingSecret, `${header}.${body}`);
+
+  const jwt = `${header}.${body}.${signature}`;
 
   res.status(200).send(jwt);
-};
+}
 
 export const checkAuth: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -70,10 +75,7 @@ export const checkAuth: RequestHandler = async (req, res, next) => {
 
   if (!user) return res.status(404).send('Unknown user');
 
-  const signingSecret = crypto
-    .createHash('sha256')
-    .update(`${user.secret}${user.createdAt}`)
-    .digest('hex');
+  const signingSecret = crypto.createHash('sha256').update(`${user.secret}${user.createdAt}`).digest('hex');
 
   try {
     const tokenData = jsonwebtoken.verify(token, signingSecret) as jsonwebtoken.JwtPayload;

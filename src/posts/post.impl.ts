@@ -1,49 +1,25 @@
-import { RequestHandler } from 'express';
-import Post from '../models/postModel.js';
-import { printMarkdownToHTML } from '../util/converter.js';
+import { Post } from '@/posts/post.model.ts';
 
-export const getPaginatedPosts: RequestHandler = (req, res) => {
-  const hasValidBounds = ![isNaN(Number(req.query.page)), isNaN(Number(req.query.limit))].includes(
-    true
-  );
+export function getPaginatedPosts(page: number, size: number) {
+  const post = new Post()
+}
 
-  if (!hasValidBounds) return res.status(400).send('Invalid bounds');
-
-  const page = Number(req.params.page);
-  const limit = Number(req.params.limit);
-
-  Post.find({}, 'createdAt title author')
-    .sort('-createdAt')
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .populate({
-      path: 'author',
-      select: 'displayName',
-      strictPopulate: false,
-      transform: doc => doc.displayName
-    })
-    .lean()
-    .exec()
-    .then(docs => res.send(docs))
-    .catch(err => res.status(500).send(err.message));
-};
-
-export const createPost: RequestHandler = (req, res) => {
-  const newPost = new Post({ ...req.body });
+export function createPost(data: Post) {
+  const newPost = new Post();
   newPost
     .save()
     .then(({ _id }) => res.status(201).json(_id))
     .catch(err => res.status(500).send(err.message));
-};
+}
 
-export const countPosts: RequestHandler = (_req, res) => {
+export function countPosts() {
   Post.countDocuments()
     .exec()
     .then(count => res.json(count))
     .catch(err => res.status(500).send(err.message));
-};
+}
 
-export const getLatestPostId: RequestHandler = async (_req, res) => {
+export async function getLatestPostId() {
   if ((await Post.countDocuments().exec()) === 0)
     return res.status(404).send('There are no documents');
 
@@ -53,8 +29,9 @@ export const getLatestPostId: RequestHandler = async (_req, res) => {
     .exec()
     .then(doc => res.send(doc._id))
     .catch(err => res.status(500).send(err.message));
-};
-export const getFirstPostId: RequestHandler = async (_req, res) => {
+}
+
+export async function getFirstPostId() {
   if ((await Post.countDocuments().exec()) === 0)
     return res.status(404).send('There are no documents');
 
@@ -64,9 +41,9 @@ export const getFirstPostId: RequestHandler = async (_req, res) => {
     .exec()
     .then(doc => res.send(doc._id))
     .catch(err => res.status(500).send(err.message));
-};
+}
 
-export const getRandomPostId: RequestHandler = async (_req, res) => {
+export async function getRandomPostId() {
   if ((await Post.countDocuments().exec()) === 0)
     return res.status(404).send('There are no documents');
 
@@ -75,9 +52,9 @@ export const getRandomPostId: RequestHandler = async (_req, res) => {
     .exec()
     .then(doc => res.send(doc[0]))
     .catch(err => res.status(500).send(err.message));
-};
+}
 
-export const getPostById: RequestHandler = async (req, res) => {
+export async function getPostById() {
   const postData = await Post.findById(req.params.id)
     .populate({
       path: 'author',
@@ -103,9 +80,9 @@ export const getPostById: RequestHandler = async (req, res) => {
   };
 
   res.json(result);
-};
+}
 
-export const updatePost: RequestHandler = async (req, res) => {
+export async function updatePost() {
   const postAuthor = await Post.findById(req.params.id, 'author')
     .lean()
     .exec()
@@ -118,9 +95,9 @@ export const updatePost: RequestHandler = async (req, res) => {
     .exec()
     .then(() => res.sendStatus(200))
     .catch(err => res.status(500).send(err.message));
-};
+}
 
-export const deletePost: RequestHandler = async (req, res) => {
+export async function deletePost() {
   const postAuthor = await Post.findById(req.params.id, 'author')
     .populate({
       path: 'author',
@@ -138,9 +115,9 @@ export const deletePost: RequestHandler = async (req, res) => {
     .exec()
     .then(() => res.sendStatus(200))
     .catch(err => res.status(500).send(err.message));
-};
+}
 
-export const getNextPostId: RequestHandler = async (req, res) => {
+export async function getNextPostId() {
   const currentPost = await Post.findById(req.params.id, 'createdAt').lean().exec();
 
   const nextPost = await Post.findOne({ createdAt: { $gt: currentPost.createdAt } }, 'id')
@@ -149,9 +126,9 @@ export const getNextPostId: RequestHandler = async (req, res) => {
 
   if (!nextPost) return res.sendStatus(404);
   res.json(nextPost._id);
-};
+}
 
-export const getPreviousPostId: RequestHandler = async (req, res) => {
+export async function getPreviousPostId() {
   const currentPost = await Post.findById(req.params.id, 'createdAt').lean().exec();
 
   const prevPost = await Post.findOne({ createdAt: { $lt: currentPost.createdAt } }, 'id')
@@ -160,9 +137,9 @@ export const getPreviousPostId: RequestHandler = async (req, res) => {
 
   if (!prevPost) return res.sendStatus(404);
   res.json(prevPost._id);
-};
+}
 
-const getNeighbouringPostsByTimestamp = async (timestamp: Date) => {
+async function getNeighbouringPostsByTimestamp(timestamp: Date) {
   const [prevPostId, nextPostId] = await Promise.all([
     Post.findOne({ createdAt: { $lt: timestamp } }, 'id')
       .sort('-createdAt')
@@ -175,4 +152,4 @@ const getNeighbouringPostsByTimestamp = async (timestamp: Date) => {
   ]).then(promises => promises.map(promise => promise._id));
 
   return { prevPostId, nextPostId };
-};
+}

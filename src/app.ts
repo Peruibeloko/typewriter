@@ -1,45 +1,54 @@
-import 'dotenv/config';
-import cors from 'cors';
-import express, { ErrorRequestHandler, RequestHandler } from 'express';
-import mongoose from 'mongoose';
-import routes from './routes/index.js';
+import { auth } from '@/auth/auth.routes.ts';
+import { post } from '@/posts/post.routes.ts';
 
-const app = express();
+import { Hono } from '@hono/hono';
+import { cors } from '@hono/hono/cors';
+import { logger } from '@hono/hono/logger';
 
-if (!process.env.MONGODB_URL) throw Error('MONGODB_URL not set in Environment Variables');
+export interface Bindings {
+  SITE_URL: string;
+  DB_PATH: string;
+  PORT: number;
+  VERBOSE?: boolean;
+}
 
-mongoose.connect(process.env.MONGODB_URL);
+function checkEnv(env: Partial<Bindings>): Bindings {
+  const missing = [];
 
-app.use(express.json());
+  if (!env.DB_PATH) missing.push('DB_PATH');
+  if (!env.SITE_URL) missing.push('SITE_URL');
+  if (!env.PORT) missing.push('PORT');
+
+  if (missing.length !== 0) {
+    throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+  }
+
+  return env as Bindings;
+}
+
+const app = new Hono<{
+  Bindings: Bindings;
+}>();
+const env = checkEnv(Deno.env.toObject());
+
 app.use(
   cors({
-    origin: process.env.BLOG_URL ?? '*',
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+    origin: env.SITE_URL || '*',
+    allowMethods: ['POST', 'GET', 'OPTIONS']
   })
 );
 
-if (process.env.VERBOSE === 'true') {
-  app.use((req, _res, next) => {
-    console.log(
-      `[${new Date().toLocaleString('pt-BR')}] `,
-      `${req.method} ${req.originalUrl}\n${req.body ? ' Body: \n' : ''}`,
-      req.body ?? ''
-    );
-    next();
-  });
-}
-app.use('/healthcheck', (_req, res) => res.send('OK'));
-app.use(routes);
+if (env.VERBOSE) app.use(logger());
 
-// catch 404
-app.use(((req, res, _next) => {
-  res.status(404).send(`Error: ${req.originalUrl} not found`);
-}) as RequestHandler);
+app.get('/health', c => c.text('UP'));
+app.route('/auth', auth);
+app.route('/post', post);
 
-// catch 500
-app.use(((err, _req, res, _next) => {
-  res.status(500).send(`Error: ${err}`);
-}) as ErrorRequestHandler);
-
-const port = process.env.PORT || 9595;
-app.listen(port, () => console.log(`Listening on port ${port}`));
+Deno.serve(
+  {
+    port: 3000,
+    hostname: '0.0.0.0',
+    onListen: ({ port }) => console.log(`Listening on port ${port}`)
+  },
+  app.fetch
+);
